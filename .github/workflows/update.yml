@@ -1,0 +1,193 @@
+name: Update Package
+
+on:
+  workflow_call:
+    inputs:
+      type:
+        description: '"cask" or "formula"'
+        required: true
+        type: string
+      name:
+        description: 'Package name (e.g., "diriger", "mcp-bin")'
+        required: true
+        type: string
+      version:
+        description: 'Version (v prefix stripped automatically)'
+        required: true
+        type: string
+      desc:
+        required: true
+        type: string
+      homepage:
+        required: true
+        type: string
+      # Cask inputs
+      cask_url:
+        description: 'Download URL template (use #{version} for Homebrew interpolation)'
+        type: string
+        default: ''
+      cask_sha256:
+        type: string
+        default: ''
+      cask_app_name:
+        description: 'Name of the .app inside the DMG (e.g., "Diriger.app")'
+        type: string
+        default: ''
+      cask_depends_on:
+        description: 'depends_on value (e.g., macos: ">= :sonoma")'
+        type: string
+        default: ''
+      # Formula inputs
+      macos_url:
+        type: string
+        default: ''
+      macos_sha256:
+        type: string
+        default: ''
+      linux_amd64_url:
+        type: string
+        default: ''
+      linux_amd64_sha256:
+        type: string
+        default: ''
+      linux_arm64_url:
+        type: string
+        default: ''
+      linux_arm64_sha256:
+        type: string
+        default: ''
+      formula_install:
+        description: 'Custom install block body (default: bin.install "name")'
+        type: string
+        default: ''
+    secrets:
+      tap_token:
+        required: true
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update tap repository
+        env:
+          GH_TOKEN: ${{ secrets.tap_token }}
+          INPUT_TYPE: ${{ inputs.type }}
+          INPUT_NAME: ${{ inputs.name }}
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_DESC: ${{ inputs.desc }}
+          INPUT_HOMEPAGE: ${{ inputs.homepage }}
+          INPUT_CASK_URL: ${{ inputs.cask_url }}
+          INPUT_CASK_SHA256: ${{ inputs.cask_sha256 }}
+          INPUT_CASK_APP_NAME: ${{ inputs.cask_app_name }}
+          INPUT_CASK_DEPENDS_ON: ${{ inputs.cask_depends_on }}
+          INPUT_MACOS_URL: ${{ inputs.macos_url }}
+          INPUT_MACOS_SHA256: ${{ inputs.macos_sha256 }}
+          INPUT_LINUX_AMD64_URL: ${{ inputs.linux_amd64_url }}
+          INPUT_LINUX_AMD64_SHA256: ${{ inputs.linux_amd64_sha256 }}
+          INPUT_LINUX_ARM64_URL: ${{ inputs.linux_arm64_url }}
+          INPUT_LINUX_ARM64_SHA256: ${{ inputs.linux_arm64_sha256 }}
+          INPUT_FORMULA_INSTALL: ${{ inputs.formula_install }}
+        run: |
+          set -euo pipefail
+          SEMVER="${INPUT_VERSION#v}"
+
+          git clone "https://x-access-token:${GH_TOKEN}@github.com/volodymyrsmirnov/homebrew-tap.git" /tmp/tap
+          cd /tmp/tap
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if [ "$INPUT_TYPE" = "cask" ]; then
+            mkdir -p Casks
+
+            generate_cask() {
+              local cask_name="$1"
+              local file="$2"
+              {
+                echo "cask \"${cask_name}\" do"
+                echo "  version \"${SEMVER}\""
+                echo "  sha256 \"${INPUT_CASK_SHA256}\""
+                echo ""
+                echo "  url \"${INPUT_CASK_URL}\""
+                echo "  name \"${INPUT_NAME^}\""
+                echo "  desc \"${INPUT_DESC}\""
+                echo "  homepage \"${INPUT_HOMEPAGE}\""
+                echo ""
+                if [ -n "$INPUT_CASK_DEPENDS_ON" ]; then
+                  echo "  depends_on ${INPUT_CASK_DEPENDS_ON}"
+                  echo ""
+                fi
+                echo "  app \"${INPUT_CASK_APP_NAME:-${INPUT_NAME^}.app}\""
+                echo "end"
+              } > "$file"
+            }
+
+            generate_cask "$INPUT_NAME" "Casks/${INPUT_NAME}.rb"
+            generate_cask "${INPUT_NAME}@${SEMVER}" "Casks/${INPUT_NAME}@${SEMVER}.rb"
+
+            git add Casks/
+
+          elif [ "$INPUT_TYPE" = "formula" ]; then
+            mkdir -p Formula
+
+            # Convert name to PascalCase class: mcp-bin -> McpBin
+            CLASS_NAME=$(echo "$INPUT_NAME" | sed 's/-/ /g' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) substr($i,2)}1' | tr -d ' ')
+            # Versioned class: McpBin -> McpBinAT022
+            CLASS_SUFFIX=$(echo "$SEMVER" | tr -d '.')
+            VERSIONED_CLASS="${CLASS_NAME}AT${CLASS_SUFFIX}"
+
+            INSTALL_BLOCK="${INPUT_FORMULA_INSTALL:-bin.install \"${INPUT_NAME}\"}"
+
+            generate_formula() {
+              local class_name="$1"
+              local file="$2"
+              {
+                echo "class ${class_name} < Formula"
+                echo "  desc \"${INPUT_DESC}\""
+                echo "  homepage \"${INPUT_HOMEPAGE}\""
+                echo "  version \"${SEMVER}\""
+                echo "  license \"MIT\""
+                echo ""
+                if [ -n "$INPUT_MACOS_URL" ]; then
+                  echo "  on_macos do"
+                  echo "    url \"${INPUT_MACOS_URL}\""
+                  echo "    sha256 \"${INPUT_MACOS_SHA256}\""
+                  echo "  end"
+                fi
+                if [ -n "$INPUT_LINUX_AMD64_URL" ] || [ -n "$INPUT_LINUX_ARM64_URL" ]; then
+                  echo ""
+                  echo "  on_linux do"
+                  if [ -n "$INPUT_LINUX_ARM64_URL" ]; then
+                    echo "    on_arm do"
+                    echo "      url \"${INPUT_LINUX_ARM64_URL}\""
+                    echo "      sha256 \"${INPUT_LINUX_ARM64_SHA256}\""
+                    echo "    end"
+                  fi
+                  if [ -n "$INPUT_LINUX_AMD64_URL" ]; then
+                    echo "    on_intel do"
+                    echo "      url \"${INPUT_LINUX_AMD64_URL}\""
+                    echo "      sha256 \"${INPUT_LINUX_AMD64_SHA256}\""
+                    echo "    end"
+                  fi
+                  echo "  end"
+                fi
+                echo ""
+                echo "  def install"
+                echo "    ${INSTALL_BLOCK}"
+                echo "  end"
+                echo ""
+                echo "  test do"
+                echo "    assert_match version.to_s, shell_output(\"#{bin}/${INPUT_NAME} --version\")"
+                echo "  end"
+                echo "end"
+              } > "$file"
+            }
+
+            generate_formula "$CLASS_NAME" "Formula/${INPUT_NAME}.rb"
+            generate_formula "$VERSIONED_CLASS" "Formula/${INPUT_NAME}@${SEMVER}.rb"
+
+            git add Formula/
+          fi
+
+          git diff --cached --quiet && { echo "No changes"; exit 0; }
+          git commit -m "Update ${INPUT_NAME} to ${SEMVER}"
+          git push
