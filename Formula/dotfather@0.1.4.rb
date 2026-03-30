@@ -1,4 +1,4 @@
-class Dotfather < Formula
+class DotfatherAT014 < Formula
   desc "Lightweight symlink-based dotfile manager"
   homepage "https://github.com/volodymyrsmirnov/dotfather"
   version "0.1.4"
