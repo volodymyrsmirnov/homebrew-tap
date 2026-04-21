@@ -1,4 +1,4 @@
-cask "diriger" do
+cask "diriger@1.0.4" do
   version "1.0.4"
   sha256 "c919298e6844eb2cf8c6e5f53346d333d7158387361b220132b871d1a776f2e6"
 
