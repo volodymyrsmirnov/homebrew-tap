@@ -122,7 +122,6 @@ jobs:
             }
 
             generate_cask "$INPUT_NAME" "Casks/${INPUT_NAME}.rb"
-            generate_cask "${INPUT_NAME}@${SEMVER}" "Casks/${INPUT_NAME}@${SEMVER}.rb"
 
             git add Casks/
 
@@ -131,9 +130,6 @@ jobs:
 
             # Convert name to PascalCase class: mcp-bin -> McpBin
             CLASS_NAME=$(echo "$INPUT_NAME" | sed 's/-/ /g' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) substr($i,2)}1' | tr -d ' ')
-            # Versioned class: McpBin -> McpBinAT022
-            CLASS_SUFFIX=$(echo "$SEMVER" | tr -d '.')
-            VERSIONED_CLASS="${CLASS_NAME}AT${CLASS_SUFFIX}"
 
             INSTALL_BLOCK="${INPUT_FORMULA_INSTALL:-bin.install \"${INPUT_NAME}\"}"
 
@@ -183,7 +179,6 @@ jobs:
             }
 
             generate_formula "$CLASS_NAME" "Formula/${INPUT_NAME}.rb"
-            generate_formula "$VERSIONED_CLASS" "Formula/${INPUT_NAME}@${SEMVER}.rb"
 
             git add Formula/
           fi
