@@ -1,12 +1,12 @@
 class Choix < Formula
   desc "Photo and video culling tool"
   homepage "https://github.com/volodymyrsmirnov/choix"
-  version "0.1.3"
+  version "0.1.4"
   license "MIT"
 
   on_macos do
-    url "https://github.com/volodymyrsmirnov/choix/releases/download/v0.1.3/choix-osx-universal"
-    sha256 "7b0c3844f4319073be403a5e053e37c94f13884c492b66afef31cece14eb9a1b"
+    url "https://github.com/volodymyrsmirnov/choix/releases/download/v0.1.4/choix-osx-universal"
+    sha256 "08e3c9d2dc09e5bb185c1e30bf9a7fae8eabb1b0051726b20d5938babf1eea2a"
   end
 
   def install
