@@ -1,6 +1,6 @@
 cask "diriger" do
-  version "1.0.27"
-  sha256 "6b667b4322c10267e71ba916d8e346ba746b8afa3c5ef5bc9f75f6e622bd9b88"
+  version "1.0.28"
+  sha256 "64c7718d35d66cc46ddf9201ff0cea21a5680ad704cef62c194f70d32f7802ed"
 
   url "https://github.com/volodymyrsmirnov/diriger/releases/download/v#{version}/Diriger-#{version}.dmg"
   name "Diriger"
