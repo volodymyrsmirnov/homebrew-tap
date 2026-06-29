@@ -1,23 +1,13 @@
 class Choix < Formula
   desc "Photo and video culling tool"
   homepage "https://github.com/volodymyrsmirnov/choix"
-  url "https://github.com/volodymyrsmirnov/choix/releases/download/v0.1.8/choix-osx-universal"
-  version "0.1.8"
-  sha256 "66d2a843a1708d17be2bca8e023f2f1a0d82293938b6225d92c206a9453efc61"
+  version "0.1.9"
   license "MIT"
-  # Bump when only metadata/deps change (binary URL unchanged) so an existing
-  # `brew upgrade choix` reinstalls and pulls in the dependencies below.
-  revision 1
 
-  # Runtime dependencies choix shells out to / dlopen()s:
-  #   exiftool    — metadata extraction (internal/meta)
-  #   ffmpeg      — video keyframes + RAW/HEIC thumbnail fallback (internal/thumb)
-  #   onnxruntime — CLIP visual-clustering embeddings (internal/ai/local).
-  #                 choix discovers libonnxruntime.dylib under the brew opt prefix.
-  depends_on "exiftool"
-  depends_on "ffmpeg"
-  depends_on :macos
-  depends_on "onnxruntime"
+  on_macos do
+    url "https://github.com/volodymyrsmirnov/choix/releases/download/v0.1.9/choix-osx-universal"
+    sha256 "0733224a29cca7d3a19961968da89f6d45dd2608c98caa4b80da87d5afe441e2"
+  end
 
   def install
     binary = Dir["choix-*"].first
