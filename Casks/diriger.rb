@@ -7,7 +7,7 @@ cask "diriger" do
   desc "Menu bar app for quickly switching between Google Chrome profiles"
   homepage "https://github.com/volodymyrsmirnov/diriger"
 
-  depends_on macos: ">= :sonoma"
+  depends_on macos: :sonoma
 
   app "Diriger.app"
 end
