@@ -34,7 +34,7 @@ on:
         type: string
         default: ''
       cask_depends_on:
-        description: 'depends_on value (e.g., macos: ">= :sonoma")'
+        description: 'depends_on value (e.g., macos: :sonoma)'
         type: string
         default: ''
       # Formula inputs
