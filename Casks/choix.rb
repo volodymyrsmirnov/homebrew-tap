@@ -1,6 +1,6 @@
 cask "choix" do
-  version "2.0.0"
-  sha256 "823c371733f7877887ab17751afaa2ee3f8b82702d39cef145a2c9ae7dda9e01"
+  version "2.1.0"
+  sha256 "3696ef9ea63fbdf819c09a9269fa7112512506b76e08fb44d8156a3899ac49e3"
 
   url "https://github.com/volodymyrsmirnov/choix/releases/download/v#{version}/Choix-#{version}-arm64.dmg"
   name "Choix"
